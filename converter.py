@@ -40,8 +40,8 @@ def process_folder(input_folder: str):
         print(f"Input folder does not exist: {input_folder}")
         return
     
-    # Create output directory (webp folder next to input)
-    output_dir = input_dir / "webp"
+    # Create output directory as a sibling next to the input folder (parent/webp)
+    output_dir = input_dir.parent / "webp"
     output_dir.mkdir(exist_ok=True)
     
     # Process each image file

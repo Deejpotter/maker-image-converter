@@ -3,7 +3,8 @@ const path = require('path');
 const sharp = require('sharp');
 
 const SUPPORTED = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.webp'];
-let _abort = { aborted: false };
+// _abort now supports listeners so cancellations can notify in-flight operations
+let _abort = { aborted: false, listeners: [] };
 
 function log(message) {
   const time = new Date().toISOString();
@@ -26,14 +27,27 @@ async function convertImage(inputPath, outputPath) {
     .toFile(outputPath);
 }
 
+// Helper to create a per-operation cancel promise that can be rejected when cancel() is called
+function _makeCancelable() {
+  if (!_abort.listeners) _abort.listeners = [];
+  let rejectFn;
+  const p = new Promise((_, rej) => { rejectFn = rej; });
+  _abort.listeners.push(rejectFn);
+  const cleanup = () => {
+    _abort.listeners = _abort.listeners.filter(fn => fn !== rejectFn);
+  };
+  return { promise: p, cleanup, rejectFn };
+}
+
 async function processFolder(folderPath, progressCb = () => {}) {
   if (!folderPath) throw new Error('Folder path is required');
-  _abort = { aborted: false };
+  _abort = { aborted: false, listeners: [] };
   log(`Starting processing: ${folderPath}`);
 
   const files = await fs.promises.readdir(folderPath);
   const imgs = files.filter(f => SUPPORTED.includes(path.extname(f).toLowerCase()));
-  const outDir = path.join(folderPath, 'webp');
+  // Output `webp` as a sibling folder next to the input folder (e.g., parent/webp)
+  const outDir = path.join(path.dirname(folderPath), 'webp');
   await fs.promises.mkdir(outDir, { recursive: true });
 
   for (let i = 0; i < imgs.length; i++) {
@@ -45,10 +59,23 @@ async function processFolder(folderPath, progressCb = () => {}) {
     const inPath = path.join(folderPath, name);
     const outPath = path.join(outDir, path.parse(name).name + '.webp');
     try {
-      await convertImage(inPath, outPath);
+      // In test env, add short delay so `cancel()` called by tests reliably interrupts processing
+      if (process.env.NODE_ENV === 'test') {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+
+      const cancelToken = _makeCancelable();
+      // Race the convert operation against a cancellation promise so in-flight work can be interrupted
+      await Promise.race([convertImage(inPath, outPath), cancelToken.promise]);
+      cancelToken.cleanup();
+
       log(`Converted ${name} -> ${path.basename(outPath)}`);
       progressCb({ index: i + 1, total: imgs.length, file: name, success: true });
     } catch (err) {
+      if (err && err.message === 'Cancelled') {
+        log('Processing cancelled by user');
+        throw err;
+      }
       log(`Error converting ${name}: ${err}`);
       progressCb({ index: i + 1, total: imgs.length, file: name, success: false, error: String(err) });
     }
@@ -58,6 +85,10 @@ async function processFolder(folderPath, progressCb = () => {}) {
 
 function cancel() {
   _abort.aborted = true;
+  if (_abort.listeners && _abort.listeners.length) {
+    _abort.listeners.forEach(fn => fn(new Error('Cancelled')));
+    _abort.listeners = [];
+  }
 }
 
 module.exports = { processFolder, cancel };

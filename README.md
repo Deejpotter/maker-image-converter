@@ -1,6 +1,6 @@
 # Maker Image Converter
 
-A simple desktop application to batch convert images to WebP format with white background padding and a friendly GUI for non-technical users.
+A simple command-line tool to batch convert images to WebP format with white background padding. See `USAGE.md` for usage and examples.
 
 ## Features
 - Convert any image folder to WebP (800x800px, white background)
@@ -12,16 +12,32 @@ A simple desktop application to batch convert images to WebP format with white b
 - **Image processing:** `sharp` (Node.js image library using libvips)
 - **Packaging tool:** `electron-builder` (create Windows installer / portable apps)
 
-## Usage
-1. Install the application (Windows installer)
-2. Launch the app and select an input folder
-3. The converted WebP files will appear in a `webp` subfolder next to the input folder
+## Usage (recommended)
+This project is intended to be used from the terminal. The CLI is the recommended and supported workflow for batch conversions.
+
+- Convert a folder using Node (recommended):
+
+  ```bash
+  npm install
+  npm run convert -- "<input-folder>"
+  ```
+
+- Convert using Python fallback (Pillow):
+
+  ```bash
+  python converter.py "<input-folder>"
+  ```
+
+Notes:
+- Paths with spaces must be quoted.
+- Output is written to a `webp/` folder next to the input folder (sibling directory under the same parent).
 
 ## Development
 1. Install Node.js (LTS, v18+ recommended)
 2. Install dependencies: `npm install`
-3. Run in development mode: `npm run dev`
-4. Build a Windows installer: `npm run build` (configured to call `electron-builder`)
+3. Run tests: `npm test`
+4. If you want to run the Electron app for manual testing: `npm run dev` (this is primarily for development/debugging)
+5. Build a Windows installer: `npm run build` (configured to call `electron-builder`; you may need Administrator privileges or Developer Mode enabled on Windows)
 
 ## Why Electron + sharp
 - `sharp` provides high-performance image resizing and WebP support with prebuilt native binaries, avoiding local build issues.

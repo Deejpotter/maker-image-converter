@@ -1,7 +1,9 @@
 const selectBtn = document.getElementById('select');
 const startBtn = document.getElementById('start');
+const cancelBtn = document.getElementById('cancel');
 const folderSpan = document.getElementById('folder');
 const log = document.getElementById('log');
+const progressBar = document.getElementById('progressBar');
 let selectedFolder = null;
 
 selectBtn.addEventListener('click', async () => {

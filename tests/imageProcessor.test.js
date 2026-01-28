@@ -20,7 +20,8 @@ test('processFolder converts image to 800x800 webp', async () => {
 
   await processFolder(dir, () => {});
 
-  const outFile = path.join(dir, 'webp', 'test.webp');
+  // Output 'webp' folder should be a sibling to the input folder
+  const outFile = path.join(path.dirname(dir), 'webp', 'test.webp');
   expect(fs.existsSync(outFile)).toBe(true);
   const meta = await sharp(outFile).metadata();
   expect(meta.format).toBe('webp');

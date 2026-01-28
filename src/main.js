@@ -25,28 +25,6 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();
 });
 
-ipcMain.handle('select-folder', async () => {
-  const res = await dialog.showOpenDialog({ properties: ['openDirectory'] });
-  if (res.canceled) return null;
-  return res.filePaths[0];
-});
-
-ipcMain.on('process-folder', async (event, folderPath) => {
-  try {
-    await imageProcessor.processFolder(folderPath, (progress) => {
-      event.sender.send('progress', progress);
-    });
-    event.sender.send('done', { success: true });
-  } catch (err) {
-    event.sender.send('done', { success: false, error: String(err) });
-  }
-});
-
-ipcMain.on('cancel-process', (event) => {
-  try {
-    imageProcessor.cancel();
-    event.sender.send('cancelled', { ok: true });
-  } catch (err) {
-    event.sender.send('cancelled', { ok: false, error: String(err) });
-  }
-});
+// Register IPC handlers from a dedicated module so we can test them independently
+const { registerIpcHandlers } = require('./ipcHandlers');
+registerIpcHandlers(ipcMain, imageProcessor, dialog);
