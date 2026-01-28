@@ -41,7 +41,7 @@ def process_folder(input_folder: str):
         return
     
     # Create output directory (webp folder next to input)
-    output_dir = input_dir.parent / "webp"
+    output_dir = input_dir / "webp"
     output_dir.mkdir(exist_ok=True)
     
     # Process each image file

@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Maker Image Converter</title>
+    <style>
+      body { font-family: Arial, sans-serif; padding: 20px }
+      button { padding: 8px 12px }
+      #log { margin-top: 12px; height: 220px; overflow: auto; background: #f8f8f8; padding: 8px; border-radius: 4px }
+    </style>
+  </head>
+  <body>
+    <h2>Maker Image Converter</h2>
+    <div>
+      <button id="select">Select Folder</button>
+      <span id="folder">No folder selected</span>
+    </div>
+    <div style="margin-top:12px">
+      <button id="start" disabled>Start Conversion</button>
+    </div>
+    <div id="log"></div>
+    <script src="renderer.js"></script>
+  </body>
+</html>
