@@ -41,3 +41,12 @@ ipcMain.on('process-folder', async (event, folderPath) => {
     event.sender.send('done', { success: false, error: String(err) });
   }
 });
+
+ipcMain.on('cancel-process', (event) => {
+  try {
+    imageProcessor.cancel();
+    event.sender.send('cancelled', { ok: true });
+  } catch (err) {
+    event.sender.send('cancelled', { ok: false, error: String(err) });
+  }
+});

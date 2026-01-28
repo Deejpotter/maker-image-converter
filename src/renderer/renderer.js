@@ -17,10 +17,20 @@ selectBtn.addEventListener('click', async () => {
 startBtn.addEventListener('click', () => {
   if (!selectedFolder) return;
   startBtn.disabled = true;
+  cancelBtn.disabled = false;
+  log.innerHTML = '';
+  progressBar.value = 0;
   window.api.processFolder(selectedFolder);
 });
 
+cancelBtn.addEventListener('click', () => {
+  window.api.cancelProcess();
+  cancelBtn.disabled = true;
+});
+
 window.api.onProgress((p) => {
+  const percent = Math.round((p.index / p.total) * 100);
+  progressBar.value = percent;
   log.innerHTML += `<div>(${p.index}/${p.total}) ${p.file} — ${p.success ? 'OK' : 'ERROR'}</div>`;
   log.scrollTop = log.scrollHeight;
 });
@@ -28,4 +38,11 @@ window.api.onProgress((p) => {
 window.api.onDone((data) => {
   log.innerHTML += `<div style="margin-top:10px;font-weight:bold">Done — ${data.success ? 'Success' : 'Failed'} ${data.error ? (': ' + data.error) : ''}</div>`;
   startBtn.disabled = false;
+  cancelBtn.disabled = true;
+});
+
+window.api.onCancelled((data) => {
+  log.innerHTML += `<div style="margin-top:10px;color:orange">Cancelled</div>`;
+  startBtn.disabled = false;
+  cancelBtn.disabled = true;
 });
