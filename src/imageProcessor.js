@@ -25,7 +25,7 @@ async function convertImage(inputPath, outputPath, options = {}, watermarkMode =
     .resize(800, 800, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } });
 
   // Resolve watermark path: prefer provided, otherwise use built-in asset based on mode
-  const watermarkOpacity = (typeof options.watermarkOpacity === 'number') ? options.watermarkOpacity : 0.3;
+  const watermarkOpacity = (typeof options.watermarkOpacity === 'number') ? options.watermarkOpacity : 0.2;
   let watermarkPath = options.watermarkPath;
   if (!watermarkPath) {
     // Use mode-specific asset: diagonal for -dims, horizontal for standard
