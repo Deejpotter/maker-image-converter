@@ -1,28 +1,73 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <title>Maker Image Converter</title>
-    <style>
-      body { font-family: Arial, sans-serif; padding: 20px }
-      button { padding: 8px 12px }
-      #log { margin-top: 12px; height: 220px; overflow: auto; background: #f8f8f8; padding: 8px; border-radius: 4px }
-    </style>
-  </head>
-  <body>
-    <h2>Maker Image Converter</h2>
-    <div>
-      <button id="select">Select Folder</button>
-      <span id="folder">No folder selected</span>
-    </div>
-    <div style="margin-top:12px">
-      <button id="start" disabled>Start Conversion</button>
-      <button id="cancel" disabled style="margin-left:8px">Cancel</button>
-    </div>
-    <div id="progress" style="margin-top:12px">
-      <progress id="progressBar" value="0" max="100" style="width:100%"></progress>
-    </div>
-    <div id="log"></div>
-    <script src="renderer.js"></script>
-  </body>
+
+<head>
+  <meta charset="utf-8" />
+  <title>Maker Image Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px
+    }
+
+    button {
+      padding: 8px 12px
+    }
+
+    #log {
+      margin-top: 12px;
+      height: 220px;
+      overflow: auto;
+      background: #f8f8f8;
+      padding: 8px;
+      border-radius: 4px
+    }
+  </style>
+</head>
+
+<body>
+  <h2>Maker Image Converter</h2>
+  <div>
+    <button id="select">Select Folder</button>
+    <span id="folder">No folder selected</span>
+  </div>
+  <div style="margin-top:12px">
+    <select id="mode">
+      <option value="full">Full (convert + overlays)</option>
+      <option value="convert">Convert only</option>
+      <option value="overlay">Overlay only</option>
+      <option value="diagonal">Diagonal only</option>
+    </select>
+    <label style="margin-left:8px">Watermark path (optional): <input id="watermarkPath" type="text"
+        placeholder="Leave blank to use built-in" style="width:320px" /></label>
+    <label style="margin-left:8px">Opacity: <input id="watermarkOpacity" type="number" min="0" max="1" step="0.1"
+        value="0.3" style="width:80px" /></label>
+  </div>
+  <div style="margin-top:12px">
+    <label>Dims keyword: <input id="dimsKeyword" type="text" placeholder="-dims" style="width:100px"
+        value="-dims" /></label>
+  </div>
+  <div style="margin-top:12px">
+    <button id="start" disabled>Start Conversion</button>
+    <button id="cancel" disabled style="margin-left:8px">Cancel</button>
+  </div>
+  <div id="progress" style="margin-top:12px">
+    <progress id="progressBar" value="0" max="100" style="width:100%"></progress>
+  </div>
+  <div id="log"></div>
+
+  <div id="help" style="margin-top:12px;color:#333;line-height:1.4">
+    <strong>How to use</strong>: Choose a <em>Mode</em> then click <em>Start Conversion</em>.
+    - <strong>Full</strong>: Convert all images and apply overlays (01 images are primary and are not watermarked;
+    images containing the dims keyword will receive a diagonal watermark).<br />
+    - <strong>Convert</strong>: Only convert images to 800×800 WebP (no watermark).<br />
+    - <strong>Overlay</strong>: Apply the centered watermark to all non-01 images (uses built-in watermark by
+    default).<br />
+    - <strong>Diagonal</strong>: Apply a diagonal watermark to images matching the dims keyword (or when you mark the
+    folder as dims).
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+
 </html>

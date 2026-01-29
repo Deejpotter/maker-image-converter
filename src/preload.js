@@ -2,7 +2,8 @@
 function registerApi(contextBridge, ipcRenderer) {
   contextBridge.exposeInMainWorld('api', {
     selectFolder: () => ipcRenderer.invoke('select-folder'),
-    processFolder: (folderPath) => ipcRenderer.send('process-folder', folderPath),
+    // payload: { folder, command, options }
+    processFolder: (payload) => ipcRenderer.send('process-folder', payload),
     cancelProcess: () => ipcRenderer.send('cancel-process'),
     onProgress: (cb) => ipcRenderer.on('progress', (e, data) => cb(data)),
     onDone: (cb) => ipcRenderer.on('done', (e, data) => cb(data)),

@@ -10,7 +10,12 @@ function registerIpcHandlers(ipcMain, imageProcessor, dialog, fork = require('ch
     return res.filePaths[0];
   });
 
-  ipcMain.on('process-folder', (event, folderPath) => {
+  ipcMain.on('process-folder', (event, payload) => {
+    // payload may be a string folderPath (legacy) or an object { folder, command, options }
+    const folderPath = (typeof payload === 'string') ? payload : (payload && payload.folder);
+    const command = (typeof payload === 'object' && payload.command) ? payload.command : undefined;
+    const options = (typeof payload === 'object' && payload.options) ? payload.options : undefined;
+
     // Start a worker process that will do the heavy lifting and send progress messages
     const workerPath = path.join(__dirname, 'worker.js');
     try {
@@ -30,7 +35,7 @@ function registerIpcHandlers(ipcMain, imageProcessor, dialog, fork = require('ch
         currentWorker = null;
       });
 
-      currentWorker.send({ type: 'start', folder: folderPath });
+      currentWorker.send({ type: 'start', folder: folderPath, command, options });
     } catch (err) {
       event.sender.send('done', { success: false, error: String(err) });
     }

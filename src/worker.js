@@ -6,10 +6,20 @@ process.on('message', async (msg) => {
 
   if (msg.type === 'start') {
     const folder = msg.folder;
+    const options = msg.options || {};
+    const command = msg.command || 'full';
     try {
-      await imageProcessor.processFolder(folder, (progress) => {
-        process.send({ type: 'progress', data: progress });
-      });
+      // Delegate according to the requested command
+      if (command === 'convert') {
+        await imageProcessor.convertOnly(folder, (progress) => process.send({ type: 'progress', data: progress }), options);
+      } else if (command === 'overlay') {
+        await imageProcessor.overlayOnly(folder, (progress) => process.send({ type: 'progress', data: progress }), options);
+      } else if (command === 'diagonal') {
+        await imageProcessor.diagonalOnly(folder, (progress) => process.send({ type: 'progress', data: progress }), options);
+      } else {
+        await imageProcessor.processFolder(folder, (progress) => process.send({ type: 'progress', data: progress }), options);
+      }
+
       process.send({ type: 'done', data: { success: true } });
       // Optionally exit when done
       process.exit(0);

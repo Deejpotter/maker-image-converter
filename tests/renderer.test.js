@@ -7,6 +7,12 @@ beforeEach(() => {
   // load minimal HTML
   document.body.innerHTML = `
     <button id="select"></button>
+    <select id="mode">
+      <option value="full">Full</option>
+    </select>
+    <input id="watermarkPath" type="text" />
+    <input id="watermarkOpacity" type="number" value="0.3" />
+    <input id="dimsKeyword" type="text" />
     <button id="start"></button>
     <button id="cancel"></button>
     <span id="folder"></span>
@@ -49,7 +55,17 @@ test('renderer updates UI on progress and done', async () => {
   // simulate progress
   listeners.progress({ index: 1, total: 2, file: 'a.png', success: true });
   expect(progressBar.value).toBe(Math.round((1 / 2) * 100));
-  expect(log.innerHTML).toContain('a.png');
+  const idA = '#file-' + 'a.png'.replace(/[^a-z0-9_\-]/ig, '_');
+  expect(log.querySelector(idA)).toBeTruthy();
+  expect(log.querySelector(idA).textContent).toContain('a.png');
+
+  // simulate transient failure then success for same file — UI should update, not append
+  listeners.progress({ index: 1, total: 1, file: 'temp.png', success: false });
+  const idTemp = '#file-' + 'temp.png'.replace(/[^a-z0-9_\-]/ig, '_');
+  expect(log.querySelector(idTemp).textContent).toContain('ERROR');
+  listeners.progress({ index: 1, total: 1, file: 'temp.png', success: true });
+  expect(log.querySelectorAll(idTemp).length).toBe(1);
+  expect(log.querySelector(idTemp).textContent).toContain('OK');
 
   // simulate done
   listeners.done({ success: true });

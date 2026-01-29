@@ -4,11 +4,23 @@ This project is designed to be used primarily from the terminal. Below are recom
 
 ## Using Node (recommended)
 
-Install dependencies and run the bundled CLI:
+Install dependencies and run the bundled CLI. The tool provides four commands: `convert`, `overlay`, `diagonal`, and `full`.
 
 ```bash
 npm install
-npm run convert -- "G:\\My Drive\\Work Stuff\\Photos\\30 Series\\Dimensions\\raw"
+# Full run (convert + overlays)
+npm run convert -- full "C:\\path\\to\\input" --watermark-opacity 0.3 --dims-keyword -dims
+
+# Note
+If you leave `--watermark` blank, the application will use its built-in watermark image (PNG) so you do not need to provide one. The included watermark is scaled to fit the 800×800 output and rendered at the configured opacity (default 0.3).
+# Convert only (no watermarking)
+npm run convert -- convert "C:\\path\\to\\input"
+
+# Overlay only (center watermark on files NOT ending in 01)
+npm run convert -- overlay "C:\\path\\to\\input" --watermark "C:\\path\\to\\Maker Hardware BW trans USE FOR IMAGE WATERMARK.png" --watermark-opacity 0.3
+
+# Diagonal overlay only (applies only to files matching dims keyword)
+npm run convert -- diagonal "C:\\path\\to\\input" --watermark "C:\\path\\to\\Maker Hardware BW trans USE FOR IMAGE WATERMARK.png" --dims-keyword -dims
 ```
 
 The conversion writes converted images to a `webp/` folder next to the input folder (sibling directory under the same parent) and reports progress to the console.

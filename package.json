@@ -1,11 +1,13 @@
 {
   "name": "maker-image-converter",
-  "version": "0.1.0",
+  "version": "1.2.1",
   "description": "Batch image converter to WebP with GUI",
   "main": "src/main.js",
   "scripts": {
     "dev": "electron .",
-    "build": "electron-builder",
+    "build": "node ./scripts/build-with-version.js",
+    "build:version": "node ./scripts/build-with-version.js",
+    "build:versioned": "node ./scripts/build-with-version.js",
     "test": "jest --runInBand --detectOpenHandles",
     "convert": "node ./bin/convert.js"
   },
@@ -13,8 +15,9 @@
     "appId": "com.example.maker-image-converter",
     "productName": "Maker Image Converter",
     "files": [
-      "dist/**",
       "src/**",
+      "assets/**",
+      "images/**",
       "package.json"
     ],
     "win": {
@@ -22,6 +25,9 @@
         "nsis",
         "portable"
       ]
+    },
+    "nsis": {
+      "artifactName": "${productName} Installer ${version}.${ext}"
     }
   },
   "keywords": [],

@@ -22,7 +22,18 @@ startBtn.addEventListener('click', () => {
   cancelBtn.disabled = false;
   log.innerHTML = '';
   progressBar.value = 0;
-  window.api.processFolder(selectedFolder);
+
+  const mode = document.getElementById('mode').value;
+  const watermarkPath = document.getElementById('watermarkPath').value || undefined;
+  const watermarkOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || undefined;
+  const dimsKeyword = document.getElementById('dimsKeyword').value || undefined;
+
+  const options = {};
+  if (watermarkPath) options.watermarkPath = watermarkPath;
+  if (typeof watermarkOpacity === 'number') options.watermarkOpacity = watermarkOpacity;
+  if (dimsKeyword) options.dimsKeyword = dimsKeyword;
+
+  window.api.processFolder({ folder: selectedFolder, command: mode, options });
 });
 
 cancelBtn.addEventListener('click', () => {
@@ -30,10 +41,21 @@ cancelBtn.addEventListener('click', () => {
   cancelBtn.disabled = true;
 });
 
+// Maintain per-file elements so transient updates replace previous status instead of appending new lines
+const fileElements = new Map();
 window.api.onProgress((p) => {
   const percent = Math.round((p.index / p.total) * 100);
   progressBar.value = percent;
-  log.innerHTML += `<div>(${p.index}/${p.total}) ${p.file} — ${p.success ? 'OK' : 'ERROR'}</div>`;
+  const key = `file-${p.file.replace(/[^a-z0-9_\-]/ig, '_')}`;
+
+  let el = fileElements.get(key);
+  if (!el) {
+    el = document.createElement('div');
+    el.id = key;
+    log.appendChild(el);
+    fileElements.set(key, el);
+  }
+  el.innerHTML = `(${p.index}/${p.total}) ${p.file} — ${p.success ? '<span style="color:green">OK</span>' : '<span style="color:red">ERROR</span>'}`;
   log.scrollTop = log.scrollHeight;
 });
 

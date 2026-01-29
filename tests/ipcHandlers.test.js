@@ -22,7 +22,7 @@ test('process-folder starts a worker and forwards progress/done messages', async
   const mockFork = jest.fn(() => fakeWorker);
 
   const ipcMain = {
-    handle: () => {},
+    handle: () => { },
     on: (name, fn) => { handlers[name] = fn; }
   };
 
@@ -31,10 +31,14 @@ test('process-folder starts a worker and forwards progress/done messages', async
 
   registerIpcHandlers(ipcMain, {}, {}, mockFork);
 
-  // simulate process-folder (this should call fork and send a start message)
+  // simulate process-folder (legacy string folder path)
   handlers['process-folder'](event, 'some/folder');
   expect(mockFork).toHaveBeenCalled();
-  expect(fakeWorker.send).toHaveBeenCalledWith({ type: 'start', folder: 'some/folder' });
+  expect(fakeWorker.send).toHaveBeenCalledWith({ type: 'start', folder: 'some/folder', command: undefined, options: undefined });
+
+  // simulate process-folder (object payload)
+  handlers['process-folder'](event, { folder: 'some/folder', command: 'overlay', options: { watermarkPath: 'x' } });
+  expect(fakeWorker.send).toHaveBeenCalledWith({ type: 'start', folder: 'some/folder', command: 'overlay', options: { watermarkPath: 'x' } });
 
   // simulate progress message from worker
   fakeWorker._on.message({ type: 'progress', data: { index: 1, total: 1, file: 'a.png', success: true } });
@@ -49,7 +53,7 @@ test('cancel-process sends cancel to worker if present', () => {
   const handlers = {};
   const fakeWorker = { _on: {}, on: function (n, f) { this._on[n] = f; }, send: jest.fn() };
   const mockFork = jest.fn(() => fakeWorker);
-  const ipcMain = { on: (name, fn) => { handlers[name] = fn; }, handle: () => {} };
+  const ipcMain = { on: (name, fn) => { handlers[name] = fn; }, handle: () => { } };
 
   const imageProcessor = { cancel: jest.fn() };
   const sent = [];
@@ -68,7 +72,7 @@ test('cancel-process sends cancel to worker if present', () => {
 
 test('cancel-process calls imageProcessor.cancel and sends cancelled', () => {
   const handlers = {};
-  const ipcMain = { on: (name, fn) => { handlers[name] = fn; }, handle: () => {} };
+  const ipcMain = { on: (name, fn) => { handlers[name] = fn; }, handle: () => { } };
   const imageProcessor = { cancel: jest.fn() };
   const sent = [];
   const event = { sender: { send: (k, d) => sent.push({ k, d }) } };
