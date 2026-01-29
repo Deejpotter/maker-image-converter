@@ -21,6 +21,18 @@ The current description is a bit brief. We will expand it to include specific de
 - [ ] Clarify the "Application Modes" descriptions to be more explicit about what happens in each.
 - [ ] Mention the `-dims` keyword and how folder naming affects diagonal watermarks.
 
-## 3. Implementation
+## 3. UI Modernization
+### Logic
+Transform the interface from a basic HTML layout to a modern, professional desktop application look. This involves using better typography, a structured card layout for settings, and consistent spacing.
+
+### Sub-steps
+- [ ] Implement a global color palette (Slate/Blue theme).
+- [ ] Add a card-based layout for the main controls.
+- [ ] Style buttons with hover states and disabled appearances.
+- [ ] Improve the progress bar and log visibility.
+- [ ] Use a clean, sans-serif font stack.
+
+## 4. Implementation
 - [ ] Apply changes to `src/main.js`.
 - [ ] Apply changes to `src/renderer/index.html`.
+- [ ] Refine `renderer.js` if needed for UI transitions.

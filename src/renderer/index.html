@@ -5,91 +5,318 @@
   <meta charset="utf-8" />
   <title>Maker Image Converter</title>
   <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --success-color: #10b981;
+      --error-color: #ef4444;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.5;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 24px;
+      box-sizing: border-box;
+    }
+
+    header {
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 24px;
+      flex-grow: 1;
+      min-height: 0; /* Important for scrollable children */
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: 0;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .scroll-card {
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
     }
 
     button {
-      padding: 8px 12px
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 13px;
+    }
+
+    button:hover:not(:disabled) {
+      background-color: var(--primary-hover);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button#cancel {
+      background-color: #fff;
+      color: #ef4444;
+      border: 1px solid #ef4444;
+    }
+
+    button#cancel:hover:not(:disabled) {
+      background-color: #fef2f2;
+    }
+
+    select, input[type="text"], input[type="number"] {
+      padding: 7px 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 13px;
+      background: white;
+      outline: none;
+    }
+
+    #folder {
+      font-size: 13px;
+      color: var(--text-muted);
+      background: #f1f5f9;
+      padding: 7px 10px;
+      border-radius: 6px;
+      flex-grow: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border: 1px solid var(--border-color);
     }
 
     #log {
+      flex-grow: 1;
       margin-top: 12px;
-      height: 220px;
-      overflow: auto;
-      background: #f8f8f8;
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 12px;
+      border-radius: 8px;
+      font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+      font-size: 12px;
+      overflow-y: auto;
+    }
+
+    progress {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      appearance: none;
+    }
+
+    progress::-webkit-progress-bar { background-color: #e2e8f0; }
+    progress::-webkit-progress-value { background-color: var(--primary-color); }
+
+    .help-content {
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .help-content h3 {
+      font-size: 14px;
+      margin: 0 0 12px 0;
+      color: var(--primary-color);
+    }
+
+    .help-content ul, .help-content ol {
+      padding-left: 18px;
+      margin: 8px 0;
+    }
+
+    .help-content li {
+      margin-bottom: 6px;
+    }
+
+    .mode-detail {
+      margin-top: 12px;
       padding: 8px;
-      border-radius: 4px
+      background: #f8fafc;
+      border-left: 3px solid var(--primary-color);
+      border-radius: 4px;
+    }
+
+    code {
+      background: #e2e8f0;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 12px;
     }
   </style>
 </head>
 
 <body>
-  <h2>Maker Image Converter</h2>
-  <div>
-    <button id="select">Select Folder</button>
-    <span id="folder">No folder selected</span>
-  </div>
-  <div style="margin-top:12px">
-    <select id="mode">
-      <option value="full">Full (convert + overlays)</option>
-      <option value="convert">Convert only</option>
-      <option value="overlay">Overlay only</option>
-      <option value="diagonal">Diagonal only</option>
-    </select>
-    <label style="margin-left:8px">Watermark path (optional): <input id="watermarkPath" type="text"
-        placeholder="Leave blank to use built-in" style="width:320px" /></label>
-    <label style="margin-left:8px">Opacity: <input id="watermarkOpacity" type="number" min="0" max="1" step="0.1"
-        value="0.2" style="width:80px" /></label>
-  </div>
-  <div style="margin-top:12px">
-    <label>Dimensions keyword: <input id="dimsKeyword" type="text" placeholder="-dims" style="width:100px"
-        value="-dims" /></label>
-  </div>
-  <div style="margin-top:12px">
-    <button id="start" disabled>Start Conversion</button>
-    <button id="cancel" disabled style="margin-left:8px">Cancel</button>
-  </div>
-  <div id="progress" style="margin-top:12px">
-    <progress id="progressBar" value="0" max="100" style="width:100%"></progress>
-  </div>
-  <div id="log"></div>
+  <div class="app-wrapper">
+    <header>
+      <h2>Maker Image Converter</h2>
+    </header>
 
-  <div id="help" style="margin-top:12px;color:#333;line-height:1.4">
-    <strong>What this app does</strong>: This tool automates the preparation of product images for the web. It
-    standardizes images into high-performance <strong>800×800px WebP</strong> files (80% quality) while maintaining
-    their original aspect ratio on a <strong>pure white background</strong>. It also handles branding by applying
-    watermarks intelligently based on filename and folder logic.
-    <br><br>
-    <strong>How to use</strong>:
-    <ol>
-      <li>Click <strong>Select Folder</strong> and choose the directory containing your source images.</li>
-      <li>Choose an <strong>Application Mode</strong> and optionally adjust settings like <strong>Opacity</strong> or
-        the <strong>Dimensions keyword</strong>.</li>
-      <li>Click <strong>Start Conversion</strong>. The app will create a <code>webp</code> folder as a sibling to your
-        source directory containing all processed files.</li>
-    </ol>
-    <strong>Application Modes</strong>:
-    <ul>
-      <li><strong>Full (convert + overlays)</strong>: The complete workflow.
-        <ul>
-          <li>Converts all images to <strong>800×800 WebP</strong>.</li>
-          <li><strong>Primary images</strong> (filenames ending in <code>01</code>) are processed without watermarks.</li>
-          <li><strong>Secondary images</strong> receive a centered branding watermark.</li>
-          <li><strong>Dimension images</strong> (containing your keyword) receive a professional diagonal watermark.</li>
-        </ul>
-      </li>
-      <li><strong>Convert only</strong>: Pure batch resizing and conversion to WebP. No watermarks are applied to any
-        files.</li>
-      <li><strong>Overlay only</strong>: Standardizes images to 800×800 and applies a centered watermark to all
-        non-primary (non-01) images.</li>
-      <li><strong>Diagonal only</strong>: Standardizes images to 800×800 and applies a diagonal watermark to images
-        containing the <strong>Dimensions keyword</strong> (default: <code>-dims</code>) or located in folders named
-        "Dimensions".</li>
-    </ul>
-    <em>Tip: Use the "Dimensions keyword" setting if your file naming convention uses something other than
-      <code>-dims</code> to identify dimension diagrams.</em>
+    <div class="main-layout">
+      <!-- Left Column: Controls and Logs -->
+      <div class="column">
+        <div class="card">
+          <span class="section-title">Configuration</span>
+          <div class="row">
+            <button id="select">Select Folder</button>
+            <span id="folder">No folder selected</span>
+          </div>
+
+          <div class="row">
+            <div class="input-group">
+              <label>Application Mode</label>
+              <select id="mode">
+                <option value="full">Full (convert + overlays)</option>
+                <option value="convert">Convert only</option>
+                <option value="overlay">Overlay only</option>
+                <option value="diagonal">Diagonal only</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Custom Watermark</label>
+              <input id="watermarkPath" type="text" placeholder="Leave blank for built-in" style="width:200px" />
+            </div>
+            <div class="input-group">
+              <label>Opacity</label>
+              <input id="watermarkOpacity" type="number" min="0" max="1" step="0.1" value="0.2" style="width:60px" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="input-group">
+              <label>Dimensions Keyword</label>
+              <input id="dimsKeyword" type="text" placeholder="-dims" style="width:100px" value="-dims" />
+            </div>
+            <div style="flex-grow: 1; display: flex; justify-content: flex-end; gap: 12px; align-self: flex-end;">
+              <button id="start" disabled>Start Conversion</button>
+              <button id="cancel" disabled>Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="flex-grow: 1; display: flex; flex-direction: column;">
+          <span class="section-title">Activity Log</span>
+          <progress id="progressBar" value="0" max="100"></progress>
+          <div id="log"></div>
+        </div>
+      </div>
+
+      <!-- Right Column: Instructions -->
+      <div class="column">
+        <div class="card scroll-card help-content">
+          <span class="section-title">Documentation</span>
+          
+          <h3>Core Functionality</h3>
+          <p>
+            Standardizes images into <strong>800×800px WebP</strong> files (80% quality).
+            The logic preserves aspect ratio by fitting images inside a <strong>pure white background.</strong>.
+          </p>
+          
+          <h3>Instructions</h3>
+          <p>Simply select a folder containing your images and choose an operation mode then the photos in that folder will be processed according to the app rules.</p>
+
+          <h3 style="margin-top: 20px;">Output Location</h3>
+          <p>
+            Process results are saved to a <code>webp/</code> folder created <strong>inside the same directory</strong> as your
+            source images.
+          </p>
+
+          <h3>Image Processing Logic</h3>
+          <ul>
+            <li><strong>Primary Assets</strong>: Files ending in <code>01</code> (e.g., <code>SKU-01.jpg</code>) are processed <strong>without</strong> watermarks.</li>
+            <li><strong>Secondaries</strong>: All other files receive a <strong>centered</strong> watermark. (e.g., <code>SKU-02.jpg</code>) </li>
+            <li><strong>Dimensions</strong>: Files containing your <strong>Keyword</strong> (default: <code>-dims</code>) receive a <strong>diagonal</strong> watermark. (e.g., <code>SKU-dims-07.jpg</code>)</li>
+          </ul>
+
+          <h3>Application Modes</h3>
+          <div class="mode-detail">
+            <strong>Full Run</strong>: The master workflow combining all conversion and heuristic branding.
+          </div>
+          <div class="mode-detail">
+            <strong>Convert only</strong>: Pure resizing and WebP conversion. No watermarks applied.
+          </div>
+          <div class="mode-detail">
+            <strong>Overlay only</strong>: Resizes to 800x800 and applies centered overlays to all non-primary files.
+          </div>
+          <div class="mode-detail">
+            <strong>Diagonal only</strong>: Resizes and applies diagonal overlays to files matching the Dimensions keyword.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="renderer.js"></script>
