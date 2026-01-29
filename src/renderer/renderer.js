@@ -61,10 +61,37 @@ window.api.onProgress((p) => {
 });
 
 window.api.onDone((data) => {
-  log.innerHTML += `<div style="margin-top:10px;font-weight:bold">Done — ${data.success ? 'Success' : 'Failed'} ${data.error ? (': ' + data.error) : ''}</div>`;
+  let message = `<div style="margin-top:10px;font-weight:bold">`;
+  message += data.success ? 'Success!' : 'Failed';
+  
+  if (data.error) {
+    // Display full error message to help user understand what went wrong
+    message += `<div style="color:red;margin-top:5px;font-size:0.9em;font-family:monospace">${escapeHtml(data.error)}</div>`;
+    
+    // Suggest CLI as fallback for large conversions or persistent errors
+    message += `<div style="color:orange;margin-top:8px;font-size:0.85em">`;
+    message += `Tip: For large folders or if errors persist, use the CLI: <code style="font-family:monospace">npm run convert -- full "path/to/folder"</code>`;
+    message += `</div>`;
+  }
+  
+  message += `</div>`;
+  log.innerHTML += message;
   startBtn.disabled = false;
   cancelBtn.disabled = true;
 });
+
+// Helper to escape HTML special characters for safe display in logs
+function escapeHtml(text) {
+  if (!text) return '';
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return text.replace(/[&<>"']/g, c => map[c]);
+}
 
 window.api.onCancelled((data) => {
   log.innerHTML += `<div style="margin-top:10px;color:orange">Cancelled</div>`;

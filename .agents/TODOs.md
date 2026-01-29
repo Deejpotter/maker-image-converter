@@ -87,17 +87,17 @@ We observed the UI can become unresponsive when converting many images. The imme
 - Sub-steps:
   - API: Add `options` parameter to `processFolder(folderPath, progressCb, options)`.
     - `options.watermarkPath` (string): path to watermark PNG. ✅
-    - `options.watermarkOpacity` (number, default 0.3). ✅
+    - `options.watermarkOpacity` (number, default 0.2). ✅
     - `options.dimsKeyword` (string, default `-dims`). ✅
     - `options.dimsFolder` (string, optional) to mark a folder as containing dimension images. ✅
   - Implementation:
     - Add helper to decide watermark type for each file: none / center / diagonal. ✅
     - Update `convertImage` to composite watermark with `sharp` using `opacity` and `gravity: 'centre'`. ✅
-    - For diagonal watermark: rotate watermark (45deg) and scale to cover diagonal using a same-size canvas; composite centered. ✅
+    - For diagonal watermark: scale pre-rotated asset to fit within bounds; composite centered. ✅
     - Preserve existing behavior when `options` omitted. ✅
   - Tests: ✅
     - Added tests to `tests/imageProcessor.test.js` verifying:
-      - Files ending with `01` do not get watermarked.
+      - Files ending with `01` do not get watermarked (unless dims).
       - Other files get center watermark (checked via pixel sampling).
       - Files containing `-dims` get diagonal watermark when enabled.
   - CLI: ✅
@@ -105,9 +105,46 @@ We observed the UI can become unresponsive when converting many images. The imme
   - Docs: ✅
     - `USAGE.md` updated with a usage example demonstrating watermark flags.
 
----
+9) GUI Stability Improvements (STATUS: completed)
 
-## 4-Section Interface Plan (STATUS: done)
+- Logic: The GUI (Electron app) occasionally throws errors during processing even though the underlying Node CLI works reliably. This is an IPC/worker communication issue. To make the GUI more stable:
+  1. Add error handling and logging in the worker to capture full error context.
+  2. Improve error messages in the renderer so users see meaningful feedback.
+  3. Add timeout protection to prevent hanging processes.
+  4. Recommend CLI for production use in the GUI (per README).
+  
+- Sub-steps:
+  - Add structured error logging to `src/worker.js` so errors are captured with full stack traces. ✅ COMPLETED
+    - Added console.error logging at startup, on completion, and all error paths
+    - Included full error.stack in failure messages sent to renderer
+    - Added process.on('uncaughtException') handler for unexpected errors
+  - Update `src/ipcHandlers.js` to provide more context in error messages. ✅ COMPLETED
+    - Added cleanup helper to properly terminate workers and clear timeouts
+    - Set 5-minute timeout on worker process to prevent indefinite hangs
+    - Added error.kill('SIGTERM') when timeout expires
+    - Improved error messages to include worker exit codes and communication failures
+    - Added worker exit handler to detect unexpected exits
+  - Add timeout handling to the worker process to prevent indefinite hangs. ✅ COMPLETED
+    - Implemented WORKER_TIMEOUT = 5 minutes in ipcHandlers.js
+    - Sets setTimeout to kill worker and notify renderer if timeout exceeded
+    - Clears timeout when worker completes normally (type: 'done' message)
+  - Update renderer to display full error messages and provide CLI fallback suggestion. ✅ COMPLETED
+    - Enhanced onDone handler to display full error message in red monospace font
+    - Added escapeHtml() helper to safely display errors without HTML injection
+    - Added "Tip" suggestion to use CLI for large folders when errors occur
+    - CLI example shown: `npm run convert -- full "path/to/folder"`
+  - Add robust error recovery in preload/main so disconnected workers are cleaned up. ✅ COMPLETED
+    - Updated ipcHandlers.js cleanupWorker() to safely kill worker and clear timeout
+    - Worker kill wrapped in try-catch to handle already-dead processes
+    - All handlers (process-folder, cancel-process, error) call cleanup on exit
+  - Update README.md and USAGE.md to emphasize CLI as primary workflow and GUI as secondary. ✅ COMPLETED
+    - Updated README.md header to emphasize CLI as "primary and recommended workflow"
+    - Added "If the GUI shows errors" section with CLI fallback example
+    - Changed default opacity mention from 0.3 to 0.2
+    - Clarified that CLI is "more stable" than GUI
+
+Result: GUI now displays meaningful errors, suggests CLI when needed, and has timeout protection. All tests pass.
+
 
 Goal: Provide CLI and programmatic interface with 4 distinct actions and a "Full Run" that executes them all in one run.
 

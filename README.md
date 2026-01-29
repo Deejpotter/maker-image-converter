@@ -16,14 +16,24 @@ A simple command-line tool to batch convert images to WebP format with white bac
 
 ## Usage (recommended)
 
-This project is intended to be used from the terminal. The Node-based CLI is the primary and supported workflow for batch conversions.
+**Note:** The Node-based CLI is the primary and recommended workflow for all conversions, especially large folders or when using the Electron GUI causes errors.
 
 The CLI exposes four commands: `convert`, `overlay`, `diagonal`, and `full` (full runs all steps):
+
 Behavior notes:
 
 - **Watermark defaults**: If you leave `--watermark` blank the app will use the included watermark PNG by default (no additional action required).
 - **Sizing**: Center overlay is scaled to fill the output width (fits the 800×800 canvas). The diagonal overlay is scaled to span the diagonal (corner-to-corner).
-- **Opacity**: Overlay opacity is applied exactly as provided (default 0.3). You can change it via `--watermark-opacity <float>` (0-1).
+- **Opacity**: Overlay opacity is applied exactly as provided (default 0.2). You can change it via `--watermark-opacity <float>` (0-1).
+
+### If the GUI shows errors:
+
+If the Electron GUI produces errors during processing, use the CLI instead—it runs in the main Node process and is more stable:
+
+```bash
+npm run convert -- full "C:\\path\\to\\input" --watermark "path\\to\\watermark.png" --watermark-opacity 0.2
+```
+
 
 ```bash
 npm install
