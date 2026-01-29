@@ -44,7 +44,7 @@
         value="0.2" style="width:80px" /></label>
   </div>
   <div style="margin-top:12px">
-    <label>Dims keyword: <input id="dimsKeyword" type="text" placeholder="-dims" style="width:100px"
+    <label>Dimensions keyword: <input id="dimsKeyword" type="text" placeholder="-dims" style="width:100px"
         value="-dims" /></label>
   </div>
   <div style="margin-top:12px">
@@ -57,14 +57,39 @@
   <div id="log"></div>
 
   <div id="help" style="margin-top:12px;color:#333;line-height:1.4">
-    <strong>How to use</strong>: Choose a <em>Mode</em> then click <em>Start Conversion</em>.
-    - <strong>Full</strong>: Convert all images and apply overlays (01 images are primary and are not watermarked;
-    images containing the dims keyword will receive a diagonal watermark).<br />
-    - <strong>Convert</strong>: Only convert images to 800×800 WebP (no watermark).<br />
-    - <strong>Overlay</strong>: Apply the centered watermark to all non-01 images (uses built-in watermark by
-    default).<br />
-    - <strong>Diagonal</strong>: Apply a diagonal watermark to images matching the dims keyword (or when you mark the
-    folder as dims).
+    <strong>What this app does</strong>: This tool automates the preparation of product images for the web. It
+    standardizes images into high-performance <strong>800×800px WebP</strong> files (80% quality) while maintaining
+    their original aspect ratio on a <strong>pure white background</strong>. It also handles branding by applying
+    watermarks intelligently based on filename and folder logic.
+    <br><br>
+    <strong>How to use</strong>:
+    <ol>
+      <li>Click <strong>Select Folder</strong> and choose the directory containing your source images.</li>
+      <li>Choose an <strong>Application Mode</strong> and optionally adjust settings like <strong>Opacity</strong> or
+        the <strong>Dimensions keyword</strong>.</li>
+      <li>Click <strong>Start Conversion</strong>. The app will create a <code>webp</code> folder as a sibling to your
+        source directory containing all processed files.</li>
+    </ol>
+    <strong>Application Modes</strong>:
+    <ul>
+      <li><strong>Full (convert + overlays)</strong>: The complete workflow.
+        <ul>
+          <li>Converts all images to <strong>800×800 WebP</strong>.</li>
+          <li><strong>Primary images</strong> (filenames ending in <code>01</code>) are processed without watermarks.</li>
+          <li><strong>Secondary images</strong> receive a centered branding watermark.</li>
+          <li><strong>Dimension images</strong> (containing your keyword) receive a professional diagonal watermark.</li>
+        </ul>
+      </li>
+      <li><strong>Convert only</strong>: Pure batch resizing and conversion to WebP. No watermarks are applied to any
+        files.</li>
+      <li><strong>Overlay only</strong>: Standardizes images to 800×800 and applies a centered watermark to all
+        non-primary (non-01) images.</li>
+      <li><strong>Diagonal only</strong>: Standardizes images to 800×800 and applies a diagonal watermark to images
+        containing the <strong>Dimensions keyword</strong> (default: <code>-dims</code>) or located in folders named
+        "Dimensions".</li>
+    </ul>
+    <em>Tip: Use the "Dimensions keyword" setting if your file naming convention uses something other than
+      <code>-dims</code> to identify dimension diagrams.</em>
   </div>
 
   <script src="renderer.js"></script>
