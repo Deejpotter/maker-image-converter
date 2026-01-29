@@ -98,6 +98,23 @@ We observed the UI can become unresponsive when converting many images. The imme
   - Tests: ✅
     - Added tests to `tests/imageProcessor.test.js` verifying:
       - Files ending with `01` do not get watermarked (unless dims).
+
+1) UI/UX Polish (STATUS: done)
+
+- Logic: Improve the user-facing documentation in the app and ensure the window starts in a state that provides maximum visibility.
+- Sub-steps:
+  - Enhance `src/renderer/index.html` with a detailed "What this app does" and "How to use" section. ✅
+  - Add descriptions for each mode (Full, Convert, Overlay, Diagonal). ✅
+  - Configure `src/main.js` to start the window maximized. ✅
+
+1) Fix Build & Packaging Issues (STATUS: not started)
+
+- Logic: The user encountered `MODULE_NOT_FOUND` for `has-flag` and `makensis.exe ENOENT` during `yarn build`. This indicates dependency corruption and missing system requirements for Electron Builder.
+- Sub-steps:
+  - Clear `node_modules` and the Yarn/NPM cache to resolve dependency fragmentation (`has-flag` issue).
+  - Verify NSIS installation or configure Electron Builder to download/use a portable NSIS.
+  - Run `npm install` (or `yarn`) as admin to ensure restricted file permissions are handled.
+  - Test the build with `npm run build` or `yarn build`.
       - Other files get center watermark (checked via pixel sampling).
       - Files containing `-dims` get diagonal watermark when enabled.
   - CLI: ✅
