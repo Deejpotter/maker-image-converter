@@ -28,7 +28,7 @@ startBtn.addEventListener('click', () => {
   const watermarkOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || undefined;
   const dimsKeyword = document.getElementById('dimsKeyword').value || undefined;
 
-  const options = { folderPath: selectedFolder };
+  const options = {};
   if (watermarkPath) options.watermarkPath = watermarkPath;
   if (typeof watermarkOpacity === 'number') options.watermarkOpacity = watermarkOpacity;
   if (dimsKeyword) options.dimsKeyword = dimsKeyword;
