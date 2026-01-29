@@ -28,11 +28,12 @@ startBtn.addEventListener('click', () => {
   const watermarkOpacity = parseFloat(document.getElementById('watermarkOpacity').value) || undefined;
   const dimsKeyword = document.getElementById('dimsKeyword').value || undefined;
 
-  const options = {};
+  const options = { folderPath: selectedFolder };
   if (watermarkPath) options.watermarkPath = watermarkPath;
   if (typeof watermarkOpacity === 'number') options.watermarkOpacity = watermarkOpacity;
   if (dimsKeyword) options.dimsKeyword = dimsKeyword;
 
+  console.log('Starting conversion:', { folder: selectedFolder, command: mode, options });
   window.api.processFolder({ folder: selectedFolder, command: mode, options });
 });
 

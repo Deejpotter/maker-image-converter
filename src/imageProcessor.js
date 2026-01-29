@@ -99,8 +99,13 @@ function determineWatermarkMode(name, options = {}, isDimsFolder = false, folder
   if (options && options.noWatermark) return 'none';
 
   const base = path.parse(name).name;
-  // Files that end with '01' (before extension) are primary images and should not be watermarked
-  if (base.endsWith('01')) return 'none';
+  
+  // Check if this is a dims file (either explicit or auto-detected)
+  const isDimsFile = isDimsFolder || (options.dimsKeyword && name.includes(options.dimsKeyword)) || (folderPath && folderPath.toLowerCase().includes('dimensions') && name.includes('-dims'));
+  
+  // Files that end with '01' are primary images and should not be watermarked (UNLESS they are dims files)
+  if (base.endsWith('01') && !isDimsFile) return 'none';
+  
   // If the whole folder is marked as a dims folder, all files get diagonal watermark
   if (isDimsFolder) return 'diagonal';
   // If the filename contains the configured dims keyword, treat it as diagonal
