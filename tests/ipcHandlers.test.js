@@ -82,3 +82,38 @@ test('cancel-process calls imageProcessor.cancel and sends cancelled', () => {
   expect(imageProcessor.cancel).toHaveBeenCalled();
   expect(sent.find(s => s.k === 'cancelled')).toBeTruthy();
 });
+
+test('process-folder handles worker errors', () => {
+  const handlers = {};
+  const fakeWorker = { _on: {}, on: function (n, f) { this._on[n] = f; }, send: jest.fn(), kill: jest.fn() };
+  const mockFork = jest.fn(() => fakeWorker);
+  const ipcMain = { on: (name, fn) => { handlers[name] = fn; }, handle: () => { } };
+  const event = { sender: { send: jest.fn() } };
+  const imageProcessor = { cancel: jest.fn() };
+
+  registerIpcHandlers(ipcMain, imageProcessor, {}, mockFork);
+  handlers['process-folder'](event, 'dir');
+
+  // simulate error message from worker
+  fakeWorker._on.message({ type: 'done', data: { success: false, error: 'Fail' } });
+  expect(event.sender.send).toHaveBeenCalledWith('done', { success: false, error: 'Fail' });
+});
+
+test('process-folder handles worker exit', () => {
+  const handlers = {};
+  const fakeWorker = { _on: {}, on: function (n, f) { this._on[n] = f; }, send: jest.fn(), kill: jest.fn() };
+  const mockFork = jest.fn(() => fakeWorker);
+  const ipcMain = { on: (name, fn) => { handlers[name] = fn; }, handle: () => { } };
+  const event = { sender: { send: jest.fn() } };
+  const imageProcessor = { cancel: jest.fn() };
+
+  registerIpcHandlers(ipcMain, imageProcessor, {}, mockFork);
+  handlers['process-folder'](event, 'dir');
+
+  // simulate exit
+  fakeWorker._on.exit(1);
+  // Should not crash, and cleaned up
+  handlers['cancel-process'](event);
+  // no worker to send to
+  expect(fakeWorker.send).toHaveBeenCalledTimes(1); // only the start call
+});

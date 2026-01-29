@@ -71,4 +71,13 @@ test('renderer updates UI on progress and done', async () => {
   listeners.done({ success: true });
   expect(startBtn.disabled).toBe(false);
   expect(cancelBtn.disabled).toBe(true);
+
+  // simulate cancelled
+  cancelBtn.click();
+  listeners.cancelled();
+  expect(log.innerHTML).toContain('Cancelled');
+
+  // simulate error done
+  listeners.done({ success: false, error: 'Bad file' });
+  expect(log.innerHTML).toContain('Bad file');
 });

@@ -7,7 +7,10 @@ const { processFolder, cancel } = require('../src/imageProcessor');
 jest.setTimeout(20000);
 
 function mkdtemp() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'mic-'));
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mic-'));
+  const src = path.join(base, 'src');
+  fs.mkdirSync(src);
+  return src;
 }
 
 test('processFolder converts image to 800x800 webp', async () => {
@@ -154,4 +157,60 @@ test('watermark opacity influences darkness (0.3 vs 1.0) using a solid watermark
   const avgLow = sumLow / count;
   const avgHigh = sumHigh / count;
   expect(avgHigh).toBeLessThan(avgLow);
+});
+
+test('convertOnly disables watermarks', async () => {
+  const dir = mkdtemp();
+  const inFile = path.join(dir, 'product02.png');
+  await sharp({ create: { width: 100, height: 100, channels: 3, background: { r: 255, g: 255, b: 255 } } }).png().toFile(inFile);
+
+  const { convertOnly } = require('../src/imageProcessor');
+  await convertOnly(dir, () => { });
+
+  const out = path.join(path.dirname(dir), 'webp', 'product02.webp');
+  const buf = await sharp(out).raw().toBuffer();
+  // Should be pure white (no watermark)
+  expect(buf[0]).toBeGreaterThanOrEqual(250);
+});
+
+test('overlayOnly applies watermarks', async () => {
+  const dir = mkdtemp();
+  const inFile = path.join(dir, 'test.png');
+  await sharp({ create: { width: 100, height: 100, channels: 3, background: { r: 255, g: 255, b: 255 } } }).png().toFile(inFile);
+
+  const { overlayOnly } = require('../src/imageProcessor');
+  await overlayOnly(dir, () => { }, { watermarkOpacity: 1.0 });
+
+  const out = path.join(path.dirname(dir), 'webp', 'test.webp');
+  const buf = await sharp(out).raw().toBuffer();
+  // Should have something non-white (watermark)
+  let found = false;
+  for (let i = 0; i < buf.length; i++) {
+    if (buf[i] < 250) { found = true; break; }
+  }
+  expect(found).toBe(true);
+});
+
+test('diagonalOnly applies diagonal watermark', async () => {
+  const dir = mkdtemp();
+  const inFile = path.join(dir, 'test-dims.png');
+  await sharp({ create: { width: 100, height: 100, channels: 3, background: { r: 255, g: 255, b: 255 } } }).png().toFile(inFile);
+
+  const { diagonalOnly } = require('../src/imageProcessor');
+  await diagonalOnly(dir, () => { }, { watermarkOpacity: 1.0 });
+
+  const out = path.join(path.dirname(dir), 'webp', 'test-dims.webp');
+  expect(fs.existsSync(out)).toBe(true);
+});
+
+test('fullRun delegates to processFolder', async () => {
+  const dir = mkdtemp();
+  const inFile = path.join(dir, 'test.png');
+  await sharp({ create: { width: 100, height: 100, channels: 3, background: { r: 255, g: 255, b: 255 } } }).png().toFile(inFile);
+
+  const { fullRun } = require('../src/imageProcessor');
+  await fullRun(dir, () => { });
+
+  const out = path.join(path.dirname(dir), 'webp', 'test.webp');
+  expect(fs.existsSync(out)).toBe(true);
 });

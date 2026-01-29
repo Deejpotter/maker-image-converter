@@ -5,7 +5,12 @@ const child_process = require('child_process');
 const sharp = require('sharp');
 
 jest.setTimeout(20000);
-function mkdtemp() { return fs.mkdtempSync(path.join(os.tmpdir(), 'mic-')); }
+function mkdtemp() {
+  const base = fs.mkdtempSync(path.join(os.tmpdir(), 'mic-'));
+  const src = path.join(base, 'src');
+  fs.mkdirSync(src);
+  return src;
+}
 
 test('cli converts images to webp', async () => {
   const dir = mkdtemp();
