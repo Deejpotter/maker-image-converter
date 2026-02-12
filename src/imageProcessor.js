@@ -24,14 +24,19 @@ async function convertImage(inputPath, outputPath, options = {}, watermarkMode =
   const resizePipeline = sharp(inputPath)
     .resize(800, 800, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 1 } });
 
-  // Resolve watermark path: prefer provided, otherwise use built-in asset based on mode
+  // Resolve watermark: prefer provided path, otherwise use built-in asset buffer (ASAR safe)
   const watermarkOpacity = (typeof options.watermarkOpacity === 'number') ? options.watermarkOpacity : 0.2;
-  let watermarkPath = options.watermarkPath;
-  if (!watermarkPath) {
+  let watermarkInput = options.watermarkPath;
+  
+  if (!watermarkInput) {
     // Use mode-specific asset: diagonal for -dims, horizontal for standard
     const assetName = watermarkMode === 'diagonal' ? 'MakerHardwareDiagonalOverlay.png' : 'MakerHardwareHorizontalOverlay.png';
     const assetPath = path.join(__dirname, '..', 'images', assetName);
-    watermarkPath = fs.existsSync(assetPath) ? assetPath : path.join(__dirname, '..', 'assets', 'Maker Hardware BW trans USE FOR IMAGE WATERMARK.svg');
+    const fallbackPath = path.join(__dirname, '..', 'assets', 'Maker Hardware BW trans USE FOR IMAGE WATERMARK.svg');
+    const finalPath = fs.existsSync(assetPath) ? assetPath : fallbackPath;
+    
+    // We read into a buffer because sharp (as a native module) cannot read directly from Electron's virtual app.asar filesystem
+    watermarkInput = fs.readFileSync(finalPath);
   }
 
   // If no watermarking requested or mode is none, just write the output
@@ -51,27 +56,25 @@ async function convertImage(inputPath, outputPath, options = {}, watermarkMode =
   if (watermarkMode === 'center') {
     // Scale watermark to fill the width of the base so it fits the 800x800 output
     const targetW = bw; // full width
-    const wmResized = await sharp(watermarkPath)
+    const wmResized = await sharp(watermarkInput)
       .png()
       .resize({ width: targetW, withoutEnlargement: true })
       .toBuffer();
 
     // Create a solid black canvas with the requested global opacity, then mask it with the watermark shape.
-    // This ensures the watermark's alpha is correctly scaled by the opacity value.
     const solidWithOpacity = await sharp({ create: { width: bw, height: bh, channels: 4, background: { r: 0, g: 0, b: 0, alpha: watermarkOpacity } } })
       .png()
       .toBuffer();
 
-    // Apply the watermark shape as a mask (dest-in) so only watermark-shaped regions retain the black color/alpha
+    // Apply the watermark shape as a mask (dest-in)
     watermarkCanvas = await sharp(solidWithOpacity)
       .composite([{ input: wmResized, gravity: 'centre', blend: 'dest-in' }])
       .png()
       .toBuffer();
   } else if (watermarkMode === 'diagonal') {
     // Scale the pre-rotated diagonal watermark to fit the image
-    // Cap scaling to avoid oversizing relative to the base image
     const maxScale = Math.max(bw, bh);
-    const wmDiag = await sharp(watermarkPath)
+    const wmDiag = await sharp(watermarkInput)
       .png()
       .resize({ width: maxScale, height: maxScale, fit: 'inside' })
       .toBuffer();
@@ -184,6 +187,7 @@ function cancel() {
 }
 
 async function convertOnly(folderPath, progressCb = () => { }, options = {}) {
+  log(`Starting convert-only: ${folderPath}`);
   // Ensure watermarking is disabled for convert-only
   const localOpts = { ...options, noWatermark: true };
   // Remove watermarkPath so duplicates don't confuse callers
@@ -192,6 +196,7 @@ async function convertOnly(folderPath, progressCb = () => { }, options = {}) {
 }
 
 async function overlayOnly(folderPath, progressCb = () => { }, options = {}) {
+  log(`Starting overlay-only: ${folderPath}`);
   // watermarkPath is optional; built-in watermark will be used if not provided.
   const files = await fs.promises.readdir(folderPath);
   const imgs = files.filter(f => SUPPORTED.includes(path.extname(f).toLowerCase()));
@@ -210,15 +215,18 @@ async function overlayOnly(folderPath, progressCb = () => { }, options = {}) {
       const cancelToken = _makeCancelable();
       await Promise.race([convertImage(inPath, outPath, options, watermarkMode), cancelToken.promise]);
       cancelToken.cleanup();
+      log(`Overlaid ${name} -> ${path.basename(outPath)} (mode=${watermarkMode})`);
       progressCb({ index: i + 1, total: imgs.length, file: name, success: true, watermarkMode });
     } catch (err) {
       if (err && err.message === 'Cancelled') throw err;
+      log(`Error overlaying ${name}: ${err} (mode=${watermarkMode})`);
       progressCb({ index: i + 1, total: imgs.length, file: name, success: false, error: String(err), watermarkMode });
     }
   }
 }
 
 async function diagonalOnly(folderPath, progressCb = () => { }, options = {}) {
+  log(`Starting diagonal-only: ${folderPath}`);
   // watermarkPath is optional; built-in watermark will be used if not provided.
   const files = await fs.promises.readdir(folderPath);
   const imgs = files.filter(f => SUPPORTED.includes(path.extname(f).toLowerCase()));
@@ -238,9 +246,11 @@ async function diagonalOnly(folderPath, progressCb = () => { }, options = {}) {
       const cancelToken = _makeCancelable();
       await Promise.race([convertImage(inPath, outPath, options, watermarkMode), cancelToken.promise]);
       cancelToken.cleanup();
+      log(`Diagonally processed ${name} -> ${path.basename(outPath)} (mode=${watermarkMode})`);
       progressCb({ index: i + 1, total: imgs.length, file: name, success: true, watermarkMode });
     } catch (err) {
       if (err && err.message === 'Cancelled') throw err;
+      log(`Error diagonally processing ${name}: ${err} (mode=${watermarkMode})`);
       progressCb({ index: i + 1, total: imgs.length, file: name, success: false, error: String(err), watermarkMode });
     }
   }

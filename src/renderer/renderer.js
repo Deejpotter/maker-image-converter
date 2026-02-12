@@ -56,7 +56,8 @@ window.api.onProgress((p) => {
     log.appendChild(el);
     fileElements.set(key, el);
   }
-  el.innerHTML = `(${p.index}/${p.total}) ${p.file} — ${p.success ? '<span style="color:green">OK</span>' : '<span style="color:red">ERROR</span>'}`;
+  let statusHtml = p.success ? '<span style="color:green">OK</span>' : `<span style="color:red">ERROR: ${p.error || 'Unknown error'}</span>`;
+  el.innerHTML = `(${p.index}/${p.total}) ${p.file} — ${statusHtml}`;
   log.scrollTop = log.scrollHeight;
 });
 
